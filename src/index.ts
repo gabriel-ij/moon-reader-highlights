@@ -1,5 +1,6 @@
 import {FastifyReply, FastifyTypeProviderDefault} from "fastify";
 import * as http from "http";
+import * as fs from "fs";
 
 const fastify = require('fastify')({ logger: true })
 const sqlite3 = require('sqlite3');
@@ -51,14 +52,18 @@ fastify.post('/', async (request: FastifyRequest, response: FastifyResponse) => 
     const { author, chapter, note, text, title } = highlight;
 
     await db.run(`INSERT INTO highlights values (:id, :author, :title,  :chapter, :text, :note, :highlightedAt)`, {
-      ':author': author,
-      ':chapter': chapter,
-      ':highlightedAt': new Date().toISOString(),
       ':id': undefined,
-      ':note': note,
-      ':text': text,
+      ':author': author,
       ':title': title,
+      ':chapter': chapter,
+      ':text': text,
+      ':note': note,
+      ':highlightedAt': new Date().toISOString(),
     });
+
+    // Log the highlight to a file
+    const logEntry = `[${new Date().toISOString()}] Author: ${author}, Title: ${title}, Chapter: ${chapter}, Text: ${text}, Note: ${note}\n`;
+    fs.appendFileSync('highlights.log', logEntry);
   }
 
   return response.code(201);
@@ -66,7 +71,7 @@ fastify.post('/', async (request: FastifyRequest, response: FastifyResponse) => 
 
 // NOTE: Set this variable to false if you want to stop listening on all available IPv4 interfaces
 //       https://www.fastify.io/docs/latest/Guides/Getting-Started/#your-first-server
-const shouldListenAllIpv4 = true;
+const shouldListenAllIpv4 = false;
 const basicFastifyListenOptions = {
   port: 3000,
 
@@ -101,4 +106,4 @@ const start = async () => {
 };
 
 start()
-  .then(() => console.log("[🌙] Moon+ Reader highlight server is up!"));
+  .then(() => console.log("🌙 Moon+ Reader highlight server is up!"));
