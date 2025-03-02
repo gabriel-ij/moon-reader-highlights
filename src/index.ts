@@ -14,6 +14,15 @@ type Highlight = {
   note: string;
 };
 
+interface FastifyRequest {
+  body: MoonReaderBodyRequest;
+  headers: {
+    'user-agent': string;
+    'authorization': string;
+    'content-length': string;  // Fixed the typo from 'content-lenght' to 'content-length'
+  }
+}
+
 type MoonReaderBodyRequest = {
   highlights: Array<Highlight> | undefined;
 };
@@ -31,13 +40,10 @@ type FastifyResponse = FastifyReply<
     FastifyTypeProviderDefault
   >;
 
-interface FastifyRequest {
-  body: MoonReaderBodyRequest;
-}
-
 fastify.post('/', async (request: FastifyRequest, response: FastifyResponse) => {
   const { body } = request;
   const { highlights } = body;
+  const { headers } = request;  // Add this line to extract headers from request
 
   if (!highlights) {
     return response.callNotFound();
@@ -51,14 +57,25 @@ fastify.post('/', async (request: FastifyRequest, response: FastifyResponse) => 
   for (const highlight of highlights) {
     const { author, chapter, note, text, title } = highlight;
 
-    await db.run(`INSERT INTO highlights values (:id, :author, :title,  :chapter, :text, :note, :highlightedAt)`, {
-      ':id': undefined,
-      ':author': author,
-      ':title': title,
-      ':chapter': chapter,
-      ':text': text,
-      ':note': note,
-      ':highlightedAt': new Date().toISOString(),
+    await db.run(`
+      INSERT INTO highlights (
+        author, title, chapter, text, note, highlightedAt,
+        device_info, auth_token, content_length, request_timestamp
+      ) 
+      VALUES (
+        :author, :title, :chapter, :text, :note, :highlightedAt,
+        :device_info, :auth_token, :content_length, :request_timestamp
+      )`, {
+        ':author': author,
+        ':title': title,
+        ':chapter': chapter || '',
+        ':text': text,
+        ':note': note || '',
+        ':highlightedAt': new Date().toISOString(),
+        ':device_info': headers['user-agent'],
+        ':auth_token': headers['authorization'],
+        ':content_length': parseInt(headers['content-length']),
+        ':request_timestamp': new Date().toISOString()
     });
 
     // Log the highlight to a file
@@ -74,7 +91,6 @@ fastify.post('/', async (request: FastifyRequest, response: FastifyResponse) => 
 const shouldListenAllIpv4 = false;
 const basicFastifyListenOptions = {
   port: 3000,
-
   host: shouldListenAllIpv4 ? '0.0.0.0' : undefined,
 };
 
@@ -92,7 +108,11 @@ const start = async () => {
         chapter         TEXT,
         text            TEXT,
         note            TEXT,
-        highlightedAt   TEXT
+        highlightedAt   TEXT,
+        device_info     TEXT,
+        auth_token      TEXT,
+        content_length  INTEGER,
+        request_timestamp TEXT
     )
   `);
 
@@ -106,4 +126,4 @@ const start = async () => {
 };
 
 start()
-  .then(() => console.log("🌙 Moon+ Reader highlight server is up!"));
+  .then(() => console.log("\n 🌙 Moon+ Reader highlight server is up! \n"));
