@@ -1,39 +1,76 @@
-# 🌙 Moon+ Reader Highlights
-> 🌙 Moon+ Reader Highlights - Store and control your bookmarks from application
+# Moon Reader Highlights
 
-**Moon+ Reader** is an Android EBook with more than **10+** millions of downloads. But it still has some syncing issues.
+Aplicação para armazenar e visualizar destaques (highlights) do aplicativo Moon Reader.
 
-One of methods to sync highlights or bookmarks from EBook is to use [Readwise.io](https://readwise.io/) service which give you only 30 days of free usage.
-This project aim to remove the **third party** service and give to user all control on his notes.
+## Estrutura do Projeto
 
-## 🚀 Run
-1. Clone this repository
-```shell
-git clone git@github.com:ynhhoJ/moon-reader-highlights.git
 ```
-2. Install dependencies
-```shell
-yarn install
-```
-or
-```shell
-npm install
-```
-
-2. Open `index.ts` from `src` folder and set `shouldListenAllIpv4` to `false` if you doesn't need to listen all IPv4 interfaces
-
-3. Run endpoint server
-```shell
-yarn dev
-```
-or
-```shell
-npm run dev
+moon-reader-highlights/
+├── server/                   # Código backend
+│   ├── src/                  # Código fonte principal
+│   │   ├── config/           # Configurações da aplicação
+│   │   ├── controllers/      # Controladores de rotas
+│   │   ├── models/           # Definições de tipos e modelos
+│   │   ├── routes/           # Definições de rotas
+│   │   ├── services/         # Lógica de negócios
+│   │   ├── utils/            # Funções utilitárias
+│   │   └── index.ts          # Ponto de entrada da aplicação
+│   ├── public/               # Arquivos estáticos para o servidor
+│   ├── tests/                # Testes automatizados
+│   ├── database/             # Scripts de migração e seeds
+│   └── logs/                 # Arquivos de log
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-## 🌙 Moon+ Reader connection to endpoint
-[Read full tutorial in READER_SETUP.md](./READER_SETUP.md)
+## Requisitos
 
-## ✏️ Code conduction
+- Node.js (v14+)
+- npm ou yarn
 
-This project uses [Gitmoji](https://gitmoji.carloscuesta.me) for commit messages
+## Instalação
+
+1. Clone o repositório:
+   ```
+   git clone https://github.com/seu-usuario/moon-reader-highlights.git
+   cd moon-reader-highlights
+   ```
+
+2. Instale as dependências:
+   ```
+   npm install
+   ```
+   ou
+   ```
+   yarn
+   ```
+
+## Executando o Projeto
+
+1. Inicie o servidor em modo de desenvolvimento:
+   ```
+   npm run dev
+   ```
+   ou
+   ```
+   yarn dev
+   ```
+
+2. Acesse a interface web em:
+   ```
+   http://localhost:3001
+   ```
+
+3. A API estará disponível em:
+   ```
+   http://localhost:3000
+   ```
+
+## Configuração do Moon Reader
+
+Para enviar destaques do Moon Reader para esta aplicação, siga as instruções no arquivo [READER_SETUP.md](READER_SETUP.md).
+
+## Licença
+
+MIT
