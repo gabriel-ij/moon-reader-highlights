@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moon Reader Highlights</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 5px;
+        }
+        .highlight {
+            background-color: white;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .date {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .highlight-text {
+            font-size: 1.1rem;
+            color: #333;
+            border-left: 4px solid #007bff;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        .book-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+        .chapter {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .author {
+            color: #555;
+            margin-top: 0.5rem;
+            font-size: 1rem;
+        }
+        .highlight-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .highlight-note {
+            background-color: #fffde7;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+            font-style: italic;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌙 Moon+ Reader Highlights</h1>
+        </header>
+        
+        <div id="highlights-container">
+            <div class="loading">Carregando destaques...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const highlightsContainer = document.getElementById('highlights-container');
+            
+            try {
+                const response = await fetch('/api/destaques');
+                const highlights = await response.json();
+                
+                if (highlights.length === 0) {
+                    highlightsContainer.innerHTML = '<p>Nenhum destaque encontrado. Envie destaques do Moon Reader para começar.</p>';
+                    return;
+                }
+                
+                highlights.sort((a, b) => new Date(b.highlightedAt) - new Date(a.highlightedAt));
+                
+                highlightsContainer.innerHTML = '';
+                
+                highlights.forEach(highlight => {
+                    const highlightElement = document.createElement('div');
+                    highlightElement.className = 'highlight';
+                    
+                    const date = new Date(highlight.highlightedAt).toLocaleDateString('pt-BR');
+                    
+                    highlightElement.innerHTML = `
+                        <div class="date">${date}</div>
+                        <div class="book-title">${highlight.title}</div>
+                        ${highlight.chapter ? `<div class="chapter">${highlight.chapter}</div>` : ''}
+                        <div class="highlight-text">${highlight.text}</div>
+                        <div class="author">— ${highlight.author}</div>
+                        ${highlight.note ? `<div class="highlight-note">${highlight.note}</div>` : ''}
+                    `;
+                    
+                    highlightsContainer.appendChild(highlightElement);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar destaques:', error);
+                highlightsContainer.innerHTML = '<p>Erro ao carregar destaques. Por favor, tente novamente mais tarde.</p>';
+            }
+        });
+    </script>
+</body>
+</html> 
