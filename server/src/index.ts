@@ -31,11 +31,11 @@ app.post('/', async (req: Request, res: Response) => {
 
       await db.run(`
         INSERT INTO highlights (
-          author, title, chapter, text, note, created_at,
+          author, title, chapter, text, note, highlightedAt,
           device_info, auth_token, content_length
         ) 
         VALUES (
-          :author, :title, :chapter, :text, :note, :created_at,
+          :author, :title, :chapter, :text, :note, :highlightedAt,
           :device_info, :auth_token, :content_length
         )`, {
           ':author': author,
@@ -43,7 +43,7 @@ app.post('/', async (req: Request, res: Response) => {
           ':chapter': chapter || '',
           ':text': text,
           ':note': note || '',
-          ':created_at': new Date().toISOString(),
+          ':highlightedAt': new Date().toISOString(),
           ':device_info': headers['user-agent'],
           ':auth_token': headers['authorization'],
           ':content_length': headers['content-length'] ? parseInt(headers['content-length']) : null
