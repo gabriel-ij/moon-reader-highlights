@@ -9,15 +9,9 @@ moon-reader-highlights/
 ├── server/                   # Código backend
 │   ├── src/                  # Código fonte principal
 │   │   ├── config/           # Configurações da aplicação
-│   │   ├── controllers/      # Controladores de rotas
-│   │   ├── models/           # Definições de tipos e modelos
-│   │   ├── routes/           # Definições de rotas
-│   │   ├── services/         # Lógica de negócios
 │   │   ├── utils/            # Funções utilitárias
 │   │   └── index.ts          # Ponto de entrada da aplicação
 │   ├── public/               # Arquivos estáticos para o servidor
-│   ├── tests/                # Testes automatizados
-│   ├── database/             # Scripts de migração e seeds
 │   └── logs/                 # Arquivos de log
 ├── package.json
 ├── tsconfig.json
@@ -57,15 +51,12 @@ moon-reader-highlights/
    yarn dev
    ```
 
-2. Acesse a interface web em:
-   ```
-   http://localhost:3001
-   ```
-
-3. A API estará disponível em:
+2. Acesse a aplicação em:
    ```
    http://localhost:3000
    ```
+   
+   A interface web e a API estão disponíveis no mesmo servidor.
 
 ## Configuração do Moon Reader
 
