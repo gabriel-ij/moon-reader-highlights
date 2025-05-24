@@ -89,11 +89,43 @@ header {
     font-weight: 500;
     border-bottom: 1px solid #f3f4f6;
     background-color: #fafafa;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.chapter:hover {
+    background-color: #f3f4f6;
+}
+
+.chapter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chapter-toggle {
+    transition: transform 0.1s ease;
+}
+
+.chapter-group.collapsed .chapter-toggle {
+    transform: rotate(-180deg);
 }
 
 .highlights-list {
-    padding: 1rem;
-    background-color: transparent;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    opacity: 1;
+    max-height: 5000px; /* Arbitrary large height */
+}
+
+.chapter-group.collapsed .highlights-list {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .highlight {

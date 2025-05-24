@@ -141,7 +141,14 @@ function renderHighlights(highlights) {
 
                 return `
                     <div class="chapter-group">
-                        <div class="chapter">${chapter}</div>
+                        <div class="chapter" onclick="toggleChapter(this)">
+                            <div class="chapter-header">
+                                <span>${chapter}</span>
+                                <svg class="chapter-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                        </div>
                         <div class="highlights-list">${highlightsList}</div>
                     </div>
                 `;
@@ -577,7 +584,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     return `
                         <div class="chapter-group">
-                            <div class="chapter">${chapter}</div>
+                            <div class="chapter" onclick="toggleChapter(this)">
+                                <div class="chapter-header">
+                                    <span>${chapter}</span>
+                                    <svg class="chapter-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
                             <div class="highlights-list">${highlightsList}</div>
                         </div>
                     `;
@@ -665,4 +679,48 @@ function handleNewHighlight(highlight) {
     setTimeout(() => {
         newHighlight.classList.remove('highlight-new');
     }, 800);
-} 
+}
+
+// Function to toggle chapter collapse
+function toggleChapter(chapterElement) {
+    const chapter = chapterElement.closest('.chapter-group');
+    const highlightsList = chapter.querySelector('.highlights-list');
+    const toggle = chapterElement.querySelector('.chapter-toggle');
+    
+    chapter.classList.toggle('collapsed');
+    
+    // Save collapsed state
+    const collapsedChapters = JSON.parse(localStorage.getItem('collapsedChapters') || '[]');
+    const chapterText = chapterElement.querySelector('span').textContent;
+    
+    if (chapter.classList.contains('collapsed')) {
+        if (!collapsedChapters.includes(chapterText)) {
+            collapsedChapters.push(chapterText);
+        }
+    } else {
+        const index = collapsedChapters.indexOf(chapterText);
+        if (index > -1) {
+            collapsedChapters.splice(index, 1);
+        }
+    }
+    
+    localStorage.setItem('collapsedChapters', JSON.stringify(collapsedChapters));
+}
+
+// Function to restore collapsed state
+function restoreCollapsedState() {
+    const collapsedChapters = JSON.parse(localStorage.getItem('collapsedChapters') || '[]');
+    collapsedChapters.forEach(chapterText => {
+        const chapterElement = document.querySelector(`.chapter span:contains("${chapterText}")`);
+        if (chapterElement) {
+            const chapter = chapterElement.closest('.chapter-group');
+            chapter.classList.add('collapsed');
+        }
+    });
+}
+
+// Make toggle function globally available
+window.toggleChapter = toggleChapter;
+
+// Call restore after rendering highlights
+restoreCollapsedState(); 
