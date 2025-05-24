@@ -141,10 +141,10 @@ function renderHighlights(highlights) {
 
                 return `
                     <div class="chapter-group">
-                        <div class="chapter" onclick="toggleChapter(this)">
-                            <div class="chapter-header">
-                                <span>${chapter}</span>
-                                <svg class="chapter-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <div class="chapter" onclick="toggleChapter(this)">
+                                <div class="chapter-header">
+                                    <span data-chapter="${chapter}">${chapter}</span>
+                                    <svg class="chapter-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </div>
@@ -172,13 +172,32 @@ function setupSSE() {
         try {
             const data = JSON.parse(event.data);
             
-            if (data.type === 'new_highlights') {
-                console.log('📖 New highlights received:', data.highlights);
-                // Reload highlights to show the new ones
-                loadHighlights();
+            if (data.type === 'new_highlights' && data.highlights && data.highlights.length > 0) {
+                // Compare with current highlights to prevent false positives
+                const newHighlightIds = new Set(data.highlights.map(h => h.id));
+                const existingHighlightIds = new Set(allHighlights.map(h => h.id));
                 
-                // Show a notification
-                showNotification(`Novos destaques adicionados: ${data.highlights.length}`);
+                // Check if there are actually new highlights
+                const hasNewHighlights = data.highlights.some(h => !existingHighlightIds.has(h.id));
+                
+                if (hasNewHighlights) {
+                    console.log('📖 New highlights received:', data.highlights);
+                    
+                    // Save current collapsed state
+                    const collapsedState = saveCollapsedState();
+                    
+                    // Update highlights
+                    loadHighlights().then(() => {
+                        // Restore collapsed state
+                        restoreCollapsedState(collapsedState);
+                        
+                        // Show notification only for actual new highlights
+                        const newCount = data.highlights.filter(h => !existingHighlightIds.has(h.id)).length;
+                        if (newCount > 0) {
+                            showNotification(`Novos destaques adicionados: ${newCount}`);
+                        }
+                    });
+                }
             }
         } catch (error) {
             console.error('Error parsing SSE data:', error);
@@ -238,16 +257,29 @@ function setupPolling() {
     // Poll every 10 seconds as fallback
     pollingInterval = setInterval(() => {
         console.log('🔄 Polling for new highlights...');
-        const currentCount = allHighlights.length;
+        const existingHighlightIds = new Set(allHighlights.map(h => h.id));
         
         fetch('/api/destaques')
             .then(response => response.json())
             .then(highlights => {
-                if (highlights.length > currentCount) {
-                    console.log('📖 New highlights found via polling');
+                // Check for actually new highlights by comparing IDs
+                const newHighlights = highlights.filter(h => !existingHighlightIds.has(h.id));
+                
+                if (newHighlights.length > 0) {
+                    console.log('📖 New highlights found via polling:', newHighlights);
+                    
+                    // Save current collapsed state
+                    const collapsedState = saveCollapsedState();
+                    
+                    // Update highlights
                     allHighlights = highlights;
                     renderHighlights(allHighlights);
-                    showNotification(`Novos destaques encontrados: ${highlights.length - currentCount}`);
+                    
+                    // Restore collapsed state
+                    restoreCollapsedState(collapsedState);
+                    
+                    // Show notification
+                    showNotification(`Novos destaques encontrados: ${newHighlights.length}`);
                 }
             })
             .catch(error => {
@@ -707,11 +739,31 @@ function toggleChapter(chapterElement) {
     localStorage.setItem('collapsedChapters', JSON.stringify(collapsedChapters));
 }
 
+// Function to save current collapsed state
+function saveCollapsedState() {
+    const collapsedChapters = new Set();
+    document.querySelectorAll('.chapter-group.collapsed').forEach(chapter => {
+        const chapterText = chapter.querySelector('.chapter span').textContent;
+        collapsedChapters.add(chapterText);
+    });
+    return Array.from(collapsedChapters);
+}
+
 // Function to restore collapsed state
-function restoreCollapsedState() {
-    const collapsedChapters = JSON.parse(localStorage.getItem('collapsedChapters') || '[]');
+function restoreCollapsedState(collapsedChapters = null) {
+    // If no state provided, try to get from localStorage
+    if (!collapsedChapters) {
+        collapsedChapters = JSON.parse(localStorage.getItem('collapsedChapters') || '[]');
+    }
+    
+    // First, remove all collapsed states
+    document.querySelectorAll('.chapter-group.collapsed').forEach(chapter => {
+        chapter.classList.remove('collapsed');
+    });
+    
+    // Then apply the saved state
     collapsedChapters.forEach(chapterText => {
-        const chapterElement = document.querySelector(`.chapter span:contains("${chapterText}")`);
+        const chapterElement = document.querySelector(`.chapter span[data-chapter="${chapterText}"]`);
         if (chapterElement) {
             const chapter = chapterElement.closest('.chapter-group');
             chapter.classList.add('collapsed');
