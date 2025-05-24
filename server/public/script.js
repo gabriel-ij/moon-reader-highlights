@@ -94,7 +94,13 @@ function renderHighlights(highlights) {
         
         // Create highlights list grouped by chapters
         const chaptersContent = Object.entries(book.chapters)
-            .sort(([chapterA], [chapterB]) => chapterA.localeCompare(chapterB))
+            .sort(([_chapterA, highlightsA], [_chapterB, highlightsB]) => {
+                // Get the most recent date from each chapter
+                const latestA = Math.max(...highlightsA.map(h => new Date(h.highlightedAt)));
+                const latestB = Math.max(...highlightsB.map(h => new Date(h.highlightedAt)));
+                // Sort by date descending (newest first)
+                return latestB - latestA;
+            })
             .map(([chapter, chapterHighlights]) => {
                 const highlightsList = chapterHighlights.map(highlight => {
                     const date = new Date(highlight.highlightedAt).toLocaleDateString('pt-BR');
