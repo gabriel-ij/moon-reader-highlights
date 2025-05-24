@@ -105,6 +105,62 @@ header {
     border: 1px solid #e5e7eb;
     position: relative;
     transition: all 0.2s ease;
+    animation: highlightAppear 0.5s ease-out;
+    transform-origin: center;
+}
+
+@keyframes highlightAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes highlightDelete {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        margin-bottom: 1rem;
+        padding: 2rem;
+        max-height: 1000px;
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.75);
+        margin-bottom: 0;
+        padding: 0;
+        max-height: 0;
+    }
+}
+
+.highlight-deleting {
+    animation: highlightDelete 0.2s ease-out forwards;
+    pointer-events: none;
+}
+
+/* For real-time updates, add a different animation */
+.highlight-new {
+    animation: highlightNew 0.8s ease-out;
+}
+
+@keyframes highlightNew {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+        border-color: #3b82f6;
+    }
+    50% {
+        border-color: #3b82f6;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: #e5e7eb;
+    }
 }
 
 .highlight:hover {

@@ -372,8 +372,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nextSibling: highlightElement.nextSibling
             };
             
-            // Hide the highlight immediately
+            // Add deletion animation
+            highlightElement.classList.add('highlight-deleting');
+            
+            // Wait for animation to complete before hiding
+            await new Promise(resolve => setTimeout(resolve, 500));
             highlightElement.style.display = 'none';
+            highlightElement.classList.remove('highlight-deleting');
             
             // Set up the permanent deletion timeout
             const timeoutId = setTimeout(async () => {
@@ -423,8 +428,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Clear the deletion timeout
         clearTimeout(deleteData.timeoutId);
         
-        // Restore the highlight
-        deleteData.highlightData.element.style.display = '';
+        // Restore the highlight with animation
+        const element = deleteData.highlightData.element;
+        element.style.display = '';
+        element.classList.add('highlight-new'); // Reuse the new highlight animation
+        
+        // Remove animation class after it completes
+        setTimeout(() => {
+            element.classList.remove('highlight-new');
+        }, 800);
         
         // Remove from pending deletions
         deleteTimeouts.delete(highlightId);
@@ -595,4 +607,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Erro ao carregar destaques:', error);
         highlightsContainer.innerHTML = '<div class="no-highlights">Erro ao carregar destaques. Por favor, tente novamente mais tarde.</div>';
     }
-}); 
+});
+
+// Function to handle new highlights from SSE
+function handleNewHighlight(highlight) {
+    const date = new Date(highlight.highlightedAt).toLocaleDateString('pt-BR');
+    const time = new Date(highlight.highlightedAt).toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    const highlightHTML = `
+        <div class="highlight highlight-new" data-highlight-id="${highlight.id}" data-date="${date}" data-time="${time}">
+            <div class="highlight-actions">
+                <button class="action-button copy-button" title="Copiar texto" onclick="copyToClipboard('${highlight.text.replace(/'/g, "\\'")}', this)">
+                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </button>
+                <button class="action-button delete-button" title="Excluir destaque" onclick="deleteHighlight(${highlight.id})">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="highlight-text">${highlight.text}</div>
+            ${highlight.note ? `<div class="highlight-note">Nota: ${highlight.note}</div>` : ''}
+            <div class="date-tooltip">
+                <div class="tooltip-date">${date}</div>
+                <div class="tooltip-time">${time}</div>
+            </div>
+        </div>
+    `;
+    
+    // Find the appropriate chapter group or create a new one
+    let chapterGroup = document.querySelector(`.chapter:contains("${highlight.chapter || 'Sem capítulo'}")`);
+    if (!chapterGroup) {
+        // Create new chapter group if needed
+        // ... chapter group creation logic ...
+    }
+    
+    // Insert the new highlight at the top of its chapter group
+    const highlightsList = chapterGroup.nextElementSibling;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = highlightHTML;
+    const newHighlight = tempDiv.firstElementChild;
+    
+    highlightsList.insertBefore(newHighlight, highlightsList.firstChild);
+    
+    // Remove the highlight-new class after animation completes
+    setTimeout(() => {
+        newHighlight.classList.remove('highlight-new');
+    }, 800);
+} 
