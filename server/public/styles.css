@@ -131,4 +131,17 @@ header {
     padding: 3rem;
     color: #666;
     font-size: 1.1rem;
+}
+
+.chapter-group {
+    margin-bottom: 1.5rem;
+}
+
+.chapter-group:last-child {
+    margin-bottom: 0;
+}
+
+.chapter {
+    padding: 1rem 1.5rem 0.5rem;
+    border-bottom: 1px solid #e9ecef;
 } 
