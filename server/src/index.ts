@@ -1,23 +1,78 @@
-import { criarServidor, opcoesEscuta } from './config/servidor';
-import { initializeDatabase } from './config/database';
+import express, { Request, Response } from 'express';
+import path from 'path';
+import { initializeDatabase, getDatabase } from './config/database';
 import { logger } from './utils/logger';
-import express from 'express';
 
-// Configuração do servidor web
-const servidorWeb = express();
-const PORTA_WEB = 3001;
+const app = express();
+const PORT = 3000;
 
-// Servir arquivos estáticos
-servidorWeb.use(express.static('server/public'));
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(process.cwd(), 'server', 'public')));
 
-// API para destaques
-servidorWeb.get('/api/destaques', async (_req, res) => {
+// API Routes
+app.post('/', async (req: Request, res: Response) => {
   try {
-    const db = await initializeDatabase();
+    const { highlights } = req.body;
+    const headers = req.headers;
+
+    if (!highlights) {
+      res.status(404).send('Not found');
+      return;
+    }
+
+    const db = await getDatabase();
+
+    for (const destaque of highlights) {
+      const { author, title, chapter, note, text } = destaque;
+
+      await db.run(`
+        INSERT INTO highlights (
+          author, title, chapter, text, note, highlightedAt,
+          device_info, auth_token, content_length, request_timestamp
+        ) 
+        VALUES (
+          :author, :title, :chapter, :text, :note, :highlightedAt,
+          :device_info, :auth_token, :content_length, :request_timestamp
+        )`, {
+          ':author': author,
+          ':title': title,
+          ':chapter': chapter || '',
+          ':text': text,
+          ':note': note || '',
+          ':highlightedAt': new Date().toISOString(),
+          ':device_info': headers['user-agent'],
+          ':auth_token': headers['authorization'],
+          ':content_length': headers['content-length'] ? parseInt(headers['content-length']) : null,
+          ':request_timestamp': new Date().toISOString()
+      });
+    }
+
+    res.status(201).send();
+  } catch (error) {
+    logger.error('Erro ao criar destaque', error);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+app.get('/destaques', async (_req, res) => {
+  try {
+    const db = await getDatabase();
     const destaques = await db.all('SELECT * FROM highlights');
     res.json(destaques);
-  } catch (erro) {
-    logger.error('Erro ao buscar destaques', erro);
+  } catch (error) {
+    logger.error('Erro ao listar destaques', error);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+app.get('/api/destaques', async (_req, res) => {
+  try {
+    const db = await getDatabase();
+    const destaques = await db.all('SELECT * FROM highlights');
+    res.json(destaques);
+  } catch (error) {
+    logger.error('Erro ao buscar destaques', error);
     res.status(500).json({ erro: 'Erro ao buscar destaques' });
   }
 });
@@ -28,17 +83,14 @@ async function iniciarAplicacao() {
     await initializeDatabase();
     logger.info('Banco de dados inicializado com sucesso');
 
-    // Iniciar o servidor API
-    const servidor = criarServidor();
-    await servidor.listen(opcoesEscuta);
-    logger.info(`🌙 Servidor API Moon+ Reader Highlights iniciado em http://localhost:${opcoesEscuta.port}`);
-    
-    // Iniciar o servidor web
-    servidorWeb.listen(PORTA_WEB, () => {
-      logger.info(`🌐 Servidor web iniciado em http://localhost:${PORTA_WEB}`);
+    // Iniciar o servidor
+    app.listen(PORT, () => {
+      logger.info(`🌙 Servidor Moon+ Reader Highlights iniciado em http://localhost:${PORT}`);
     });
+    
   } catch (erro) {
     logger.error('Erro ao iniciar a aplicação', erro);
+    console.error('Erro detalhado:', erro);
     process.exit(1);
   }
 }
