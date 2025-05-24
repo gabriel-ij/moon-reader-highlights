@@ -87,13 +87,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const date = new Date(highlight.highlightedAt).toLocaleDateString('pt-BR');
                         
                         return `
-                            <div class="highlight">
-                                <div class="highlight-header">
-                                    <div></div>
-                                    <div class="highlight-date">${date}</div>
-                                </div>
+                            <div class="highlight" data-date="${date}">
                                 <div class="highlight-text">${highlight.text}</div>
                                 ${highlight.note ? `<div class="highlight-note">Nota: ${highlight.note}</div>` : ''}
+                                <div class="date-tooltip">${date}</div>
                             </div>
                         `;
                     }).join('');
