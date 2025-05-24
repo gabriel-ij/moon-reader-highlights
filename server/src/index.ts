@@ -97,6 +97,23 @@ app.get('/api/destaques', async (_req, res) => {
   }
 });
 
+app.delete('/api/destaques/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const db = await getDatabase();
+    
+    await db.run('DELETE FROM highlights WHERE id = ?', id);
+    
+    // Notify all connected clients about the deletion
+    notifyClients({ type: 'highlight_deleted', highlightId: id });
+    
+    res.status(200).send();
+  } catch (error) {
+    logger.error('Erro ao deletar destaque', error);
+    res.status(500).json({ erro: 'Erro ao deletar destaque' });
+  }
+});
+
 // Server-Sent Events endpoint for real-time updates
 app.get('/api/events', (req: Request, res: Response) => {
   // Set headers for SSE

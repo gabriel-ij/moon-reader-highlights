@@ -117,18 +117,59 @@ header {
     visibility: visible;
 }
 
+.highlight-actions {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.highlight:hover .highlight-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    padding: 0.4rem;
+    cursor: pointer;
+    color: #9ca3af;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button:hover {
+    background-color: rgba(243, 244, 246, 0.8);
+    color: #4b5563;
+}
+
+.delete-button:hover {
+    color: #ef4444;
+}
+
+.copy-button:hover {
+    color: #3b82f6;
+}
+
 .highlight:last-child {
     margin-bottom: 0;
 }
 
 .date-tooltip {
     position: absolute;
-    bottom: 1rem;
+    top: 0.5rem;
     right: 1rem;
-    background-color: rgba(255, 255, 255, 0.95);
     color: #6b7280;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
+    padding: 0.3rem 0;
     font-size: 0.75rem;
     font-weight: 500;
     opacity: 0;
@@ -136,14 +177,9 @@ header {
     transition: all 0.2s ease;
     pointer-events: auto;
     z-index: 10;
-    /* border: 1px solid rgba(229, 231, 235, 0.8); */
-    backdrop-filter: blur(4px);
     cursor: default;
     text-align: right;
-}
-
-.tooltip-date {
-    line-height: 1.2;
+    background: none;
 }
 
 .tooltip-time {
