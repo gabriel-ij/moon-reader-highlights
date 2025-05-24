@@ -134,6 +134,35 @@ header {
     visibility: visible;
 }
 
+.copy-button {
+    position: relative;
+}
+
+.copy-button .copy-icon,
+.copy-button .check-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
+}
+
+.copy-button .check-icon {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+.copy-button.copied .copy-icon {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+.copy-button.copied .check-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    color: #22c55e;
+}
+
 .action-button {
     background: none;
     border: none;
@@ -145,6 +174,9 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    width: 32px;
+    height: 32px;
 }
 
 .action-button:hover {

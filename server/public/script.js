@@ -112,10 +112,13 @@ function renderHighlights(highlights) {
                     return `
                         <div class="highlight" data-highlight-id="${highlight.id}" data-date="${date}" data-time="${time}">
                             <div class="highlight-actions">
-                                <button class="action-button copy-button" title="Copiar texto" onclick="copyToClipboard('${highlight.text.replace(/'/g, "\\'")}')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <button class="action-button copy-button" title="Copiar texto" onclick="copyToClipboard('${highlight.text.replace(/'/g, "\\'")}', this)">
+                                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                 </button>
                                 <button class="action-button delete-button" title="Excluir destaque" onclick="deleteHighlight(${highlight.id})">
@@ -302,10 +305,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const highlightsContainer = document.getElementById('highlights-container');
     
     // Function to copy text to clipboard
-    async function copyToClipboard(text) {
+    async function copyToClipboard(text, button) {
         try {
             await navigator.clipboard.writeText(text);
-            // Could add a toast notification here
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.classList.remove('copied');
+            }, 800);
         } catch (err) {
             console.error('Failed to copy text:', err);
         }
@@ -429,10 +435,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         return `
                             <div class="highlight" data-highlight-id="${highlight.id}" data-date="${date}" data-time="${time}">
                                 <div class="highlight-actions">
-                                    <button class="action-button copy-button" title="Copiar texto" onclick="copyToClipboard('${highlight.text.replace(/'/g, "\\'")}')">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <button class="action-button copy-button" title="Copiar texto" onclick="copyToClipboard('${highlight.text.replace(/'/g, "\\'")}', this)">
+                                        <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                        <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </button>
                                     <button class="action-button delete-button" title="Excluir destaque" onclick="deleteHighlight(${highlight.id})">
