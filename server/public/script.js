@@ -303,6 +303,47 @@ function showNotification(message) {
 // Initialize everything when the page loads
 document.addEventListener('DOMContentLoaded', async () => {
     const highlightsContainer = document.getElementById('highlights-container');
+    let deleteTimeouts = new Map(); // Store delete timeouts
+    
+    // Function to show toast notification
+    function showToast(message, type = 'info', actions = []) {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        toast.appendChild(messageSpan);
+        
+        if (actions.length > 0) {
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'toast-actions';
+            
+            actions.forEach(action => {
+                const button = document.createElement('button');
+                button.textContent = action.text;
+                button.className = 'toast-action';
+                button.onclick = action.handler;
+                actionsContainer.appendChild(button);
+            });
+            
+            toast.appendChild(actionsContainer);
+        }
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove toast after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
     
     // Function to copy text to clipboard
     async function copyToClipboard(text, button) {
@@ -314,27 +355,87 @@ document.addEventListener('DOMContentLoaded', async () => {
             }, 800);
         } catch (err) {
             console.error('Failed to copy text:', err);
+            showToast('Erro ao copiar texto', 'error');
         }
     }
 
-    // Function to delete highlight
+    // Function to delete highlight with undo option
     async function deleteHighlight(highlightId) {
         try {
-            const response = await fetch(`/api/destaques/${highlightId}`, {
-                method: 'DELETE',
+            const highlightElement = document.querySelector(`[data-highlight-id="${highlightId}"]`);
+            if (!highlightElement) return;
+            
+            // Store the highlight data for potential restoration
+            const highlightData = {
+                element: highlightElement,
+                parent: highlightElement.parentNode,
+                nextSibling: highlightElement.nextSibling
+            };
+            
+            // Hide the highlight immediately
+            highlightElement.style.display = 'none';
+            
+            // Set up the permanent deletion timeout
+            const timeoutId = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/destaques/${highlightId}`, {
+                        method: 'DELETE',
+                    });
+                    
+                    if (response.ok) {
+                        highlightElement.remove();
+                        deleteTimeouts.delete(highlightId);
+                        showToast('Destaque excluído permanentemente', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error deleting highlight:', error);
+                    // Restore highlight on error
+                    highlightElement.style.display = '';
+                    showToast('Erro ao excluir destaque', 'error');
+                }
+            }, 5000); // 5 seconds to undo
+            
+            // Store the timeout
+            deleteTimeouts.set(highlightId, {
+                timeoutId,
+                highlightData
             });
             
-            if (response.ok) {
-                // Remove the highlight element from DOM
-                const highlightElement = document.querySelector(`[data-highlight-id="${highlightId}"]`);
-                if (highlightElement) {
-                    highlightElement.remove();
+            // Show undo toast
+            showToast('Destaque excluído', 'info', [
+                {
+                    text: 'Desfazer',
+                    handler: () => undoDelete(highlightId)
                 }
-                // Could add a toast notification here
-            }
+            ]);
+            
         } catch (error) {
             console.error('Error deleting highlight:', error);
+            showToast('Erro ao excluir destaque', 'error');
         }
+    }
+    
+    // Function to undo delete
+    function undoDelete(highlightId) {
+        const deleteData = deleteTimeouts.get(highlightId);
+        if (!deleteData) return;
+        
+        // Clear the deletion timeout
+        clearTimeout(deleteData.timeoutId);
+        
+        // Restore the highlight
+        deleteData.highlightData.element.style.display = '';
+        
+        // Remove from pending deletions
+        deleteTimeouts.delete(highlightId);
+        
+        // Remove toast
+        const toast = document.querySelector('.toast');
+        if (toast) {
+            toast.remove();
+        }
+        
+        showToast('Exclusão desfeita', 'success');
     }
 
     try {
