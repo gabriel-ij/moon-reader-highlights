@@ -134,10 +134,31 @@ header {
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s ease;
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 10;
-    border: 1px solid rgba(229, 231, 235, 0.8);
+    /* border: 1px solid rgba(229, 231, 235, 0.8); */
     backdrop-filter: blur(4px);
+    cursor: default;
+    text-align: right;
+}
+
+.tooltip-date {
+    line-height: 1.2;
+}
+
+.tooltip-time {
+    font-size: 0.65rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    margin-top: 0.1rem;
+    color: #9ca3af;
+    text-align: right;
+}
+
+.date-tooltip:hover .tooltip-time {
+    opacity: 1;
+    visibility: visible;
 }
 
 .highlight-text {

@@ -85,12 +85,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .map(([chapter, chapterHighlights]) => {
                     const highlightsList = chapterHighlights.map(highlight => {
                         const date = new Date(highlight.highlightedAt).toLocaleDateString('pt-BR');
+                        const time = new Date(highlight.highlightedAt).toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
                         
                         return `
-                            <div class="highlight" data-date="${date}">
+                            <div class="highlight" data-date="${date}" data-time="${time}">
                                 <div class="highlight-text">${highlight.text}</div>
                                 ${highlight.note ? `<div class="highlight-note">Nota: ${highlight.note}</div>` : ''}
-                                <div class="date-tooltip">${date}</div>
+                                <div class="date-tooltip">
+                                    <div class="tooltip-date">${date}</div>
+                                    <div class="tooltip-time">${time}</div>
+                                </div>
                             </div>
                         `;
                     }).join('');
