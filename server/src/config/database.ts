@@ -24,11 +24,10 @@ export async function initializeDatabase() {
         chapter         TEXT,
         text            TEXT,
         note            TEXT,
-        highlightedAt   TEXT,
+        created_at      TEXT,
         device_info     TEXT,
         auth_token      TEXT,
-        content_length  INTEGER,
-        request_timestamp TEXT
+        content_length  INTEGER
     )
   `);
   

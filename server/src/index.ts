@@ -21,6 +21,9 @@ app.post('/', async (req: Request, res: Response) => {
       return;
     }
 
+    // Simple logging to see what Moon Reader sends
+    console.log('🌙 Moon Reader sent:', JSON.stringify(req.body, null, 2));
+
     const db = await getDatabase();
 
     for (const destaque of highlights) {
@@ -28,23 +31,22 @@ app.post('/', async (req: Request, res: Response) => {
 
       await db.run(`
         INSERT INTO highlights (
-          author, title, chapter, text, note, highlightedAt,
-          device_info, auth_token, content_length, request_timestamp
+          author, title, chapter, text, note, created_at,
+          device_info, auth_token, content_length
         ) 
         VALUES (
-          :author, :title, :chapter, :text, :note, :highlightedAt,
-          :device_info, :auth_token, :content_length, :request_timestamp
+          :author, :title, :chapter, :text, :note, :created_at,
+          :device_info, :auth_token, :content_length
         )`, {
           ':author': author,
           ':title': title,
           ':chapter': chapter || '',
           ':text': text,
           ':note': note || '',
-          ':highlightedAt': new Date().toISOString(),
+          ':created_at': new Date().toISOString(),
           ':device_info': headers['user-agent'],
           ':auth_token': headers['authorization'],
-          ':content_length': headers['content-length'] ? parseInt(headers['content-length']) : null,
-          ':request_timestamp': new Date().toISOString()
+          ':content_length': headers['content-length'] ? parseInt(headers['content-length']) : null
       });
     }
 
