@@ -6,9 +6,24 @@ import { logger } from './utils/logger';
 const app = express();
 const PORT = 3000;
 
+// Store active SSE connections
+const sseClients: Response[] = [];
+
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(process.cwd(), 'server', 'public')));
+
+// Helper function to notify all SSE clients
+function notifyClients(data: any) {
+  sseClients.forEach((client, index) => {
+    try {
+      client.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch (error) {
+      // Remove dead connections
+      sseClients.splice(index, 1);
+    }
+  });
+}
 
 // API Routes
 app.post('/', async (req: Request, res: Response) => {
@@ -50,6 +65,9 @@ app.post('/', async (req: Request, res: Response) => {
       });
     }
 
+    // Notify all connected clients about new highlights
+    notifyClients({ type: 'new_highlights', highlights });
+
     res.status(201).send();
   } catch (error) {
     logger.error('Erro ao criar destaque', error);
@@ -77,6 +95,32 @@ app.get('/api/destaques', async (_req, res) => {
     logger.error('Erro ao buscar destaques', error);
     res.status(500).json({ erro: 'Erro ao buscar destaques' });
   }
+});
+
+// Server-Sent Events endpoint for real-time updates
+app.get('/api/events', (req: Request, res: Response) => {
+  // Set headers for SSE
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+
+  // Send initial connection event
+  res.write('data: {"type": "connected"}\n\n');
+
+  // Add this client to the list
+  sseClients.push(res);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    const index = sseClients.indexOf(res);
+    if (index !== -1) {
+      sseClients.splice(index, 1);
+    }
+  });
 });
 
 async function iniciarAplicacao() {
