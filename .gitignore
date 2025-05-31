@@ -2,3 +2,5 @@
 node_modules
 *.db
 *.log
+.vercel
+/dist
