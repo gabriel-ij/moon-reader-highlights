@@ -36,9 +36,6 @@ app.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    // Simple logging to see what Moon Reader sends
-    console.log('🌙 Moon Reader sent:', JSON.stringify(req.body, null, 2));
-
     const db = await getDatabase();
 
     for (const destaque of highlights) {
@@ -71,17 +68,6 @@ app.post('/', async (req: Request, res: Response) => {
     res.status(201).send();
   } catch (error) {
     logger.error('Erro ao criar destaque', error);
-    res.status(500).json({ erro: 'Erro interno do servidor' });
-  }
-});
-
-app.get('/destaques', async (_req, res) => {
-  try {
-    const db = await getDatabase();
-    const destaques = await db.all('SELECT * FROM highlights');
-    res.json(destaques);
-  } catch (error) {
-    logger.error('Erro ao listar destaques', error);
     res.status(500).json({ erro: 'Erro interno do servidor' });
   }
 });
@@ -153,7 +139,6 @@ async function iniciarAplicacao() {
     
   } catch (erro) {
     logger.error('Erro ao iniciar a aplicação', erro);
-    console.error('Erro detalhado:', erro);
     process.exit(1);
   }
 }

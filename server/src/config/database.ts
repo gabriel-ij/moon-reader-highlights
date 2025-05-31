@@ -27,8 +27,7 @@ export async function initializeDatabase() {
         highlightedAt   TEXT,
         device_info     TEXT,
         auth_token      TEXT,
-        content_length  INTEGER,
-        request_timestamp TEXT
+        content_length  INTEGER
     )
   `);
   
